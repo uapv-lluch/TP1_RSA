@@ -74,10 +74,10 @@ class Person:
         private_key = (d, n)
         return public_key, private_key
 
-    def decrypt(self, message):
+    def decrypt(self, message, delimiter=" "):
         d, n = self.private_key
         decrypted_message = ""
-        encrypted_characters = message.split()
+        encrypted_characters = message.split(delimiter)
         for encrypted_character in encrypted_characters:
             decrypted_message += chr(pow(int(encrypted_character), d, n))
         return decrypted_message

@@ -83,35 +83,39 @@ def encrypt_character(character, key):
     return encrypt_number(ord(character), key)
 
 
-def encrypt(message, key):
+def encrypt(message, key, delimiter=" "):
     encrypted_message = ""
-    for character in message:
-        encrypted_message += str(encrypt_character(character, key)) + " "
+    for character in message[:-1]:
+        encrypted_message += str(encrypt_character(character, key)) + delimiter
+    encrypted_message += str(encrypt_character(message[len(message) - 1], key))
     return encrypted_message
 
 
-def decrypt(message, key):
+def decrypt(message, key, delimiter=" "):
     d, n = key
     decrypted_message = ""
-    encrypted_characters = message.split()
+    encrypted_characters = message.split(delimiter)
     for encrypted_character in encrypted_characters:
         decrypted_message += chr(pow(int(encrypted_character), d, n))
     return decrypted_message
 
 
 def main():
-    bob = Person()
-    # public_key, private_key = generate_keys()
-    public_key = bob.public_key
-    private_key = bob.private_key
+    public_key, private_key = generate_keys()
+    public_key = 12413, 13289
+    # bob = Person()
+    # public_key = bob.public_key
+    # private_key = bob.private_key
     print("Clé publique = %s ; Clé privée = %s" % (public_key, private_key))
-    print(bob.public_key)
-    test = input("Entrez un message : ")
-    print("Message =", test)
-    encrypted = encrypt(test, public_key)
+    message = input("Entrez le message : ")
+    print("Message =", message)
+    encrypted = encrypt(message, public_key, ", ")
+    encrypted = "9197, 6284, 12836, 8709, 4584, 10239, 11553, 4584, 7008, 12523, 9862, 356, 5356, 1159, 10280, 12523, 7506, 6311"
     print("Message chiffré =", encrypted)
-    decrypted = bob.decrypt(encrypted)
+    decrypted = decrypt(encrypted, private_key, ", ")
     print("Message déchiffré =", decrypted)
 
 
-main()
+if __name__ == "__main__":
+    main()
+
