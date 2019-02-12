@@ -149,7 +149,7 @@ def main():
     encrypted = encrypt(message, public_key, ", ")
     print("Message chiffré =", encrypted)
     decrypted = decrypt_to_ascii_code(encrypted, private_key, ", ")
-    print("Message déchiffré =", decrypted)
+    print("Message déchiffré (ASCII code) =", decrypted)
     decrypted = decrypt(encrypted, private_key, ", ")
     print("Message déchiffré =", decrypted)
 
