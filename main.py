@@ -61,7 +61,7 @@ def pollard_rho(n, x=1, f=lambda x: x ** 2 + 1):
     if p == n:
         return None
     return p, n // p
-
+#
 
 def generate_keys():
     p, q = get_p_and_q()
