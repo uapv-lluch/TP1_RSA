@@ -3,6 +3,9 @@ from random import randrange
 from Person import Person
 
 
+block_size = 3
+
+
 def is_prime(n):
     if n > 0:
         for x in range(2, n - 1, 1):
