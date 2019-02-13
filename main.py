@@ -142,7 +142,7 @@ def encrypt_by_character(message, public_key, delimiter=" "):
     return encrypted_message
 
 
-#chiffre par blocs un message avec la clé publique
+# chiffre par blocs un message avec la clé publique
 def encrypt_by_block(message, public_key, delimiter=" "):
     global block_size
     base = 256
@@ -154,9 +154,7 @@ def encrypt_by_block(message, public_key, delimiter=" "):
     for character in message[:-1]:
         coded_message += to_ascii(character, block_size)
     coded_message += to_ascii(message[len(message) - 1], block_size)
-    print(coded_message)
     coded_message_array = split_into_block(coded_message, block_size + 1)
-    print(coded_message_array)
     for block in coded_message_array[:-1]:
         encrypted_message += str(encrypt_number(int(block), public_key)) + delimiter
     encrypted_message += str(encrypt_number(int(coded_message_array[len(coded_message_array) - 1]), public_key))
@@ -204,8 +202,7 @@ def main():
     global block_size
     public_key, private_key = generate_keys()
     print("Clé publique = %s ; Clé privée = %s" % (public_key, private_key))
-    message = "C'est un test"
-    # message = input("Entrez le message : ")
+    message = input("Entrez le message : ")
     print("Message =", message)
 
     # Chiffrement par caractères
