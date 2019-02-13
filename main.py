@@ -4,6 +4,7 @@ from random import randrange
 block_size = None
 
 
+# vérifie si un nombre est premier ou non
 def is_prime(n):
     if n > 0:
         for x in range(2, n - 1, 1):
@@ -13,6 +14,7 @@ def is_prime(n):
     return False
 
 
+# renvoie des p et q qui remplissent les conditions
 def get_p_and_q():
     p = None
     q = None
@@ -25,12 +27,14 @@ def get_p_and_q():
     return p, q
 
 
+# renvoie le plus grand commun diviseur de 2 nombres
 def pgcd(a, b):
     while b != 0:
         a, b = b, a % b
     return a
 
 
+# algorithme présent dans le cours, il renvoie les coefficients de Bézout
 def extended_euclidean_algorithm(a, b):
     r = a
     r2 = b
@@ -52,6 +56,7 @@ def extended_euclidean_algorithm(a, b):
     return r, u, v
 
 
+# génère les clés publiques et privées
 def generate_keys():
     p, q = get_p_and_q()
     n = p * q
@@ -70,6 +75,7 @@ def generate_keys():
     return public_key, private_key
 
 
+# algorithme rho de Pollard trouvé sur le web, il permet de retrouver p et q à partir de n
 def pollard_rho(n, x=1, f=lambda x: x ** 2 + 1):
     y = f(x) % n
     p = pgcd(y - x, n)
@@ -82,6 +88,7 @@ def pollard_rho(n, x=1, f=lambda x: x ** 2 + 1):
     return p, n // p
 
 
+# retrouve d et donc la clé privée à partir de p, q, e et n
 def get_private_key(p, q, e, n):
     phi = (p - 1) * (q - 1)
     r, d, v = extended_euclidean_algorithm(e, phi)
@@ -90,6 +97,7 @@ def get_private_key(p, q, e, n):
     return private_key
 
 
+# découpe une chaine de caractère en blocs
 def split_into_block(string, size):
     array = []
     for i in range(len(string), size-1, -size):
@@ -100,6 +108,7 @@ def split_into_block(string, size):
     return array
 
 
+# créer un bloc à partir d'un chaine
 def to_block(string, size=None):
     if size is not None and int(size) > len(string):
         while int(size) - len(string) != 0:
@@ -107,21 +116,24 @@ def to_block(string, size=None):
     return string
 
 
+# convertie en code ascii et eventuellement en bloc un caractères
 def to_ascii(character, size=None):
     ascii_code = str(ord(character))
     ascii_code = to_block(ascii_code, size)
     return ascii_code
 
-
+# chiffre un nombre avec la clé publique
 def encrypt_number(number, public_key):
     e, n = public_key
     return pow(number, e, n)
 
 
+# chiffre un caractère avec la clé publique
 def encrypt_character(character, public_key):
     return encrypt_number(ord(character), public_key)
 
 
+# chiffre par caractère un message avec la clé publique
 def encrypt_by_character(message, public_key, delimiter=" "):
     encrypted_message = ""
     for character in message[:-1]:
@@ -130,6 +142,7 @@ def encrypt_by_character(message, public_key, delimiter=" "):
     return encrypted_message
 
 
+#chiffre par blocs un message avec la clé publique
 def encrypt_by_block(message, public_key, delimiter=" "):
     global block_size
     base = 256
@@ -150,6 +163,7 @@ def encrypt_by_block(message, public_key, delimiter=" "):
     return encrypted_message
 
 
+# déchiffre un message vers le code ascii de chaque caractère avec la clé privée
 def decrypt_from_character_to_ascii_code(message, private_key, delimiter=" "):
     d, n = private_key
     decrypted_message = ""
@@ -160,6 +174,7 @@ def decrypt_from_character_to_ascii_code(message, private_key, delimiter=" "):
     return decrypted_message
 
 
+# déchiffre un message par caractère avec la clé privée
 def decrypt_from_character(message, private_key, delimiter=" "):
     d, n = private_key
     decrypted_message = ""
@@ -169,6 +184,7 @@ def decrypt_from_character(message, private_key, delimiter=" "):
     return decrypted_message
 
 
+# déchiffre un message par blocs avec la clé privée
 def decrypt_from_block(message, private_key):
     global block_size
     decrypted_to_ascii_code = decrypt_from_character_to_ascii_code(message, private_key).split(" ")
