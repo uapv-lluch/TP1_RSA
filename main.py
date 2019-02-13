@@ -1,7 +1,4 @@
-from math import log, floor
 from random import randrange
-
-from Person import Person
 
 
 block_size = None
@@ -136,7 +133,7 @@ def encrypt_by_character(message, public_key, delimiter=" "):
 def encrypt_by_block(message, public_key, delimiter=" "):
     global block_size
     base = 256
-    e, n = public_key
+    # e, n = public_key
     # block_size = floor(log(n, base))
     block_size = len(str(base))
     coded_message = ""
@@ -191,7 +188,7 @@ def main():
     global block_size
     public_key, private_key = generate_keys()
     print("Clé publique = %s ; Clé privée = %s" % (public_key, private_key))
-    message = "Ceci est un test"
+    message = "C'est un test"
     # message = input("Entrez le message : ")
     print("Message =", message)
 
