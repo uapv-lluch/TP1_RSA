@@ -55,6 +55,24 @@ def extended_euclidean_algorithm(a, b):
     return r, u, v
 
 
+def generate_keys():
+    p, q = get_p_and_q()
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    if p > q:
+        e = p
+    else:
+        e = q
+    for e in range(e + 1, phi - 1):
+        if pgcd(phi, e) == 1:
+            break
+    r, d, v = extended_euclidean_algorithm(e, phi)
+    d = d % phi
+    public_key = (e, n)
+    private_key = (d, n)
+    return public_key, private_key
+
+
 def pollard_rho(n, x=1, f=lambda x: x ** 2 + 1):
     y = f(x) % n
     p = pgcd(y - x, n)
@@ -65,29 +83,6 @@ def pollard_rho(n, x=1, f=lambda x: x ** 2 + 1):
     if p == n:
         return None
     return p, n // p
-
-
-def generate_keys():
-    p, q = get_p_and_q()
-    # print("p =", p, "; q =", q)
-    n = p * q
-    # print("n =", n)
-    phi = (p - 1) * (q - 1)
-    # print("phi =", phi)
-    if p > q:
-        e = p
-    else:
-        e = q
-    for e in range(e + 1, phi - 1):
-        if pgcd(phi, e) == 1:
-            break
-    # print("e =", e)
-    r, d, v = extended_euclidean_algorithm(e, phi)
-    d = d % phi
-    # print("d =", d)
-    public_key = (e, n)
-    private_key = (d, n)
-    return public_key, private_key
 
 
 def get_private_key(p, q, e, n):
