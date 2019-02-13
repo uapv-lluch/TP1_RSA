@@ -1,9 +1,7 @@
+from math import log, floor
 from random import randrange
 
 from Person import Person
-
-
-block_size = 3
 
 
 def is_prime(n):
@@ -18,8 +16,8 @@ def is_prime(n):
 def get_p_and_q():
     p = None
     q = None
-    min_range = 1000
-    max_range = 9999
+    min_range = 10000
+    max_range = 99999
     while p is None or (p == q or not is_prime(p)):
         p = randrange(min_range, max_range)
     while q is None or (p == q or not is_prime(q)):
@@ -97,33 +95,53 @@ def get_private_key(p, q, e, n):
     return private_key
 
 
-def encrypt_number(number, key):
-    e, n = key
+def to_ascii(character, block_size=None):
+    ascii_code = str(ord(character))
+    if block_size is not None and int(block_size) > len(ascii_code):
+        while int(block_size) - len(ascii_code) != 0:
+            ascii_code = "0" + ascii_code
+    return ascii_code
+
+
+def encrypt_number(number, public_key):
+    e, n = public_key
     return pow(number, e, n)
 
 
-def encrypt_character(character, key):
-    return encrypt_number(ord(character), key)
+def encrypt_character(character, public_key):
+    return encrypt_number(ord(character), public_key)
 
 
-def encrypt(message, key, delimiter=" "):
+def encrypt(message, public_key, delimiter=" "):
     encrypted_message = ""
     for character in message[:-1]:
-        encrypted_message += str(encrypt_character(character, key)) + delimiter
-    encrypted_message += str(encrypt_character(message[len(message) - 1], key))
+        encrypted_message += str(encrypt_character(character, public_key)) + delimiter
+    encrypted_message += str(encrypt_character(message[len(message) - 1], public_key))
     return encrypted_message
 
 
-def encrypt_by_block(message, key, delimiter=" "):
+def encrypt_by_block(message, public_key, delimiter=" "):
+    base = 256
+    e, n = public_key
+    block_size = floor(log(n, base))
+    print(log(n, base))
+    print(block_size)
+    print(to_ascii("a", block_size))
+
+    coded_message = ""
     encrypted_message = ""
     for character in message[:-1]:
-        encrypted_message += str(encrypt_character(character, key)) + delimiter
-    encrypted_message += str(encrypt_character(message[len(message) - 1], key))
+        coded_message += to_ascii(character, block_size) + delimiter
+    coded_message += to_ascii(message[len(message) - 1], block_size) + delimiter
+    print(coded_message)
+    # for character in message[:-1]:
+    #     encrypted_message += str(encrypt_character(character, public_key)) + delimiter
+    # encrypted_message += str(encrypt_character(message[len(message) - 1], public_key))
     return encrypted_message
 
 
-def decrypt_to_ascii_code(message, key, delimiter=" "):
-    d, n = key
+def decrypt_to_ascii_code(message, private_key, delimiter=" "):
+    d, n = private_key
     decrypted_message = ""
     encrypted_characters = message.split(delimiter)
     for encrypted_character in encrypted_characters[:-1]:
@@ -132,8 +150,8 @@ def decrypt_to_ascii_code(message, key, delimiter=" "):
     return decrypted_message
 
 
-def decrypt(message, key, delimiter=" "):
-    d, n = key
+def decrypt(message, private_key, delimiter=" "):
+    d, n = private_key
     decrypted_message = ""
     encrypted_characters = message.split(delimiter)
     for encrypted_character in encrypted_characters:
@@ -144,14 +162,17 @@ def decrypt(message, key, delimiter=" "):
 def main():
     public_key, private_key = generate_keys()
     print("Clé publique = %s ; Clé privée = %s" % (public_key, private_key))
-    message = input("Entrez le message : ")
+    # message = input("Entrez le message : ")
+    message = "Ceci est un test"
     print("Message =", message)
-    encrypted = encrypt(message, public_key, ", ")
+    encrypted = encrypt(message, public_key)
     print("Message chiffré =", encrypted)
-    decrypted = decrypt_to_ascii_code(encrypted, private_key, ", ")
+    decrypted = decrypt_to_ascii_code(encrypted, private_key)
     print("Message déchiffré (ASCII code) =", decrypted)
-    decrypted = decrypt(encrypted, private_key, ", ")
+    decrypted = decrypt(encrypted, private_key)
     print("Message déchiffré =", decrypted)
+
+    encrypt_by_block(message, public_key)
 
     # Crack 1
     print("\nCrack 1")
