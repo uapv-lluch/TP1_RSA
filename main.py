@@ -4,6 +4,9 @@ from random import randrange
 from Person import Person
 
 
+block_size = None
+
+
 def is_prime(n):
     if n > 0:
         for x in range(2, n - 1, 1):
@@ -95,11 +98,26 @@ def get_private_key(p, q, e, n):
     return private_key
 
 
-def to_ascii(character, block_size=None):
+def split_into_block(string, size):
+    array = []
+    for i in range(len(string), size-1, -size):
+        array.append(string[i-size:i])
+    if len(string) % size != 0:
+        array.append(to_block(string[0:len(string) % size], size))
+    array.reverse()
+    return array
+
+
+def to_block(string, size=None):
+    if size is not None and int(size) > len(string):
+        while int(size) - len(string) != 0:
+            string = "0" + string
+    return string
+
+
+def to_ascii(character, size=None):
     ascii_code = str(ord(character))
-    if block_size is not None and int(block_size) > len(ascii_code):
-        while int(block_size) - len(ascii_code) != 0:
-            ascii_code = "0" + ascii_code
+    ascii_code = to_block(ascii_code, size)
     return ascii_code
 
 
@@ -112,7 +130,7 @@ def encrypt_character(character, public_key):
     return encrypt_number(ord(character), public_key)
 
 
-def encrypt(message, public_key, delimiter=" "):
+def encrypt_by_character(message, public_key, delimiter=" "):
     encrypted_message = ""
     for character in message[:-1]:
         encrypted_message += str(encrypt_character(character, public_key)) + delimiter
@@ -121,26 +139,26 @@ def encrypt(message, public_key, delimiter=" "):
 
 
 def encrypt_by_block(message, public_key, delimiter=" "):
+    global block_size
     base = 256
     e, n = public_key
-    block_size = floor(log(n, base))
-    print(log(n, base))
-    print(block_size)
-    print(to_ascii("a", block_size))
-
+    # block_size = floor(log(n, base))
+    block_size = len(str(base))
     coded_message = ""
     encrypted_message = ""
     for character in message[:-1]:
-        coded_message += to_ascii(character, block_size) + delimiter
-    coded_message += to_ascii(message[len(message) - 1], block_size) + delimiter
+        coded_message += to_ascii(character, block_size)
+    coded_message += to_ascii(message[len(message) - 1], block_size)
     print(coded_message)
-    # for character in message[:-1]:
-    #     encrypted_message += str(encrypt_character(character, public_key)) + delimiter
-    # encrypted_message += str(encrypt_character(message[len(message) - 1], public_key))
+    coded_message_array = split_into_block(coded_message, block_size + 1)
+    print(coded_message_array)
+    for block in coded_message_array[:-1]:
+        encrypted_message += str(encrypt_number(int(block), public_key)) + delimiter
+    encrypted_message += str(encrypt_number(int(coded_message_array[len(coded_message_array) - 1]), public_key))
     return encrypted_message
 
 
-def decrypt_to_ascii_code(message, private_key, delimiter=" "):
+def decrypt_from_character_to_ascii_code(message, private_key, delimiter=" "):
     d, n = private_key
     decrypted_message = ""
     encrypted_characters = message.split(delimiter)
@@ -150,7 +168,7 @@ def decrypt_to_ascii_code(message, private_key, delimiter=" "):
     return decrypted_message
 
 
-def decrypt(message, private_key, delimiter=" "):
+def decrypt_from_character(message, private_key, delimiter=" "):
     d, n = private_key
     decrypted_message = ""
     encrypted_characters = message.split(delimiter)
@@ -159,30 +177,54 @@ def decrypt(message, private_key, delimiter=" "):
     return decrypted_message
 
 
+def decrypt_from_block(message, private_key):
+    global block_size
+    decrypted_to_ascii_code = decrypt_from_character_to_ascii_code(message, private_key).split(" ")
+    decrypted_reblocked = ""
+    for block in decrypted_to_ascii_code[:-1]:
+        decrypted_reblocked += to_block(block, block_size + 1) + " "
+    decrypted_reblocked += to_block(decrypted_to_ascii_code[len(decrypted_to_ascii_code) - 1], block_size + 1)
+    characters_ascii = split_into_block(decrypted_reblocked.replace(" ", ""), block_size)
+    final_decrypted = ""
+    for character in characters_ascii:
+        if int(character) != 0:
+            final_decrypted += chr(int(character))
+    return final_decrypted
+
+
 def main():
+    global block_size
     public_key, private_key = generate_keys()
     print("Clé publique = %s ; Clé privée = %s" % (public_key, private_key))
-    # message = input("Entrez le message : ")
     message = "Ceci est un test"
+    # message = input("Entrez le message : ")
     print("Message =", message)
-    encrypted = encrypt(message, public_key)
-    print("Message chiffré =", encrypted)
-    decrypted = decrypt_to_ascii_code(encrypted, private_key)
-    print("Message déchiffré (ASCII code) =", decrypted)
-    decrypted = decrypt(encrypted, private_key)
-    print("Message déchiffré =", decrypted)
 
-    encrypt_by_block(message, public_key)
+    # Chiffrement par caractères
+    print("\nChiffrement par caractères")
+    encrypted = encrypt_by_character(message, public_key)
+    print("Message chiffré par caractères =", encrypted)
+    decrypted = decrypt_from_character_to_ascii_code(encrypted, private_key)
+    print("Message déchiffré par caractères (ASCII code) =", decrypted)
+    decrypted = decrypt_from_character(encrypted, private_key)
+    print("Message déchiffré par caractères =", decrypted)
+
+    # Chiffrement par blocs
+    print("\nChiffrement par blocs")
+    encrypted_by_block = encrypt_by_block(message, public_key)
+    print("Message chiffré par blocs =", encrypted_by_block)
+    decrypted_from_block = decrypt_from_block(encrypted_by_block, private_key)
+    print("Message déchiffré par blocs =", decrypted_from_block)
 
     # Crack 1
     print("\nCrack 1")
-    public_key = 12413, 13289  # Crack 1
+    public_key = 12413, 13289
     p, q = pollard_rho(13289)
     e, n = public_key
     private_key = get_private_key(p, q, e, n)
     encrypted = "9197, 6284, 12836, 8709, 4584, 10239, 11553, 4584, 7008, 12523, 9862, 356, 5356, 1159, 10280, 12523, 7506, 6311"
     print("Message chiffré =", encrypted)
-    decrypted = decrypt_to_ascii_code(encrypted, private_key, ", ")
+    decrypted = decrypt_from_character_to_ascii_code(encrypted, private_key, ", ")
     print("Message déchiffré =", decrypted)
 
     # Crack 2
@@ -193,7 +235,7 @@ def main():
     private_key = get_private_key(p, q, e, n)
     encrypted = "671828605, 407505023, 288441355, 679172842, 180261802"
     print("Message chiffré =", encrypted)
-    decrypted = decrypt_to_ascii_code(encrypted, private_key, ", ")
+    decrypted = decrypt_from_character_to_ascii_code(encrypted, private_key, ", ")
     print("Message déchiffré =", decrypted)
 
 
